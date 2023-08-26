@@ -1,6 +1,6 @@
 let tabId1; // タブID1を格納する変数
 let tabId2; // タブID2を格納する変数
-let urls = ['https://jp.tradingview.com/chart/*', 'https://www.kabudragon.com/s?t=*'];
+let urls = ['https://jp.tradingview.com/chart/', 'https://www.kabudragon.com/s?t=','https://kabutan.jp/stock/chart?code='];
 
 
 // 処理を停止する関数
@@ -33,13 +33,17 @@ function startProcessing() {
  
   // 配列の要素ごとにクエリを実行する
   urls.forEach(function (url) {
-    chrome.tabs.query({ url: url }, function (tabs) {
+    console.log(url,'  url')
+    let regUrl = url + '*'
+    chrome.tabs.query({ url: regUrl }, function (tabs) {
+      console.log(url,tabs,tabs.length)
       if (tabs.length > 0) {
         let tab = tabs[0];
         // タブIDを保存する
         for (let i = 0; i < urls.length; i++) {
           if (url === urls[i]) {
             tabId[i] = tab.id;
+            console.log(tabId[i])
           }
         }
         // コンテンツスクリプトを挿入する
@@ -47,10 +51,16 @@ function startProcessing() {
           target: { tabId: tab.id },
           // @task
           // https://jp.tradingview.com/chart/*の部分を、ok_urlに変更
-          files: [url === 'https://jp.tradingview.com/chart/*' ? './detection.js' : '']
+          files: [url === 'https://jp.tradingview.com/chart/' ? './detection.js' : '']
         }, function () {
+          // urlsの配列に含まれるURLのうち、kabudragonを含むものを変数に代入する 
+          let kabudragonUrl = urls.find(url => url.includes('kabudragon'));
+          console.log(kabudragonUrl)
+
+          // 変数を使ってクエリを実行する 
+          if (url === kabudragonUrl) { chrome.runtime.onMessage.addListener(handleMessage); }
           // コンテンツスクリプトからのメッセージを処理する
-          if (url === 'https://www.kabudragon.com/s?t=*') {
+          if (url === 'https://www.kabudragon.com/s?t') {
             chrome.runtime.onMessage.addListener(handleMessage);
           }
         });
@@ -66,12 +76,17 @@ function startProcessing() {
 
   // コンテンツスクリプトからのメッセージを処理して株探のタブを開く
   function handleMessage(message, sender, sendResponse) {
+    console.log(message)
     if (message.command === "updateTabUrl") {
       let kabudragonUrl = urls.find(url => url.includes('kabudragon'));
+      console.log(kabudragonUrl)
 
-      chrome.tabs.query({ url: kabudragonUrl }, function (tabs) {
+      regKabudragonUrl = kabudragonUrl +'*'
+      chrome.tabs.query({ url: regKabudragonUrl }, function (tabs) {
+        console.log(tabs)
         if (tabs.length > 0) {
           let tab = tabs[0];
+          console.log(tab)
           chrome.tabs.update(tab.id, { url: 'https://www.kabudragon.com/s?t=' + message.url });
         }
       });
@@ -79,7 +94,7 @@ function startProcessing() {
   }
 
 
-  chrome.tabs.query({ url: 'https://jp.tradingview.com/*' }, function (tabs) {
+  chrome.tabs.query({ url: 'https://jp.tradingview.com/' }, function (tabs) {
     if (tabs.length > 0) {
       let tab = tabs[0];
       tabId2 = tab.id;
@@ -115,6 +130,7 @@ chrome.storage.onChanged.addListener(function (changes, areaName) {
   if (changes.isEnabled) {
     let isEnabled = changes.isEnabled.newValue;
     if (isEnabled) {
+      console.log(isEnabled)
       startProcessing();
     } else {
       stopProcessing();
