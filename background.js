@@ -10,7 +10,7 @@ let seatch_urls = [
   "https://kabutan.jp/stock/chart?code=",
 ];
 
-let a
+let a;
 
 // 処理を停止する関数
 function stopProcessing() {
@@ -46,11 +46,12 @@ function startProcessing() {
       console.log(url, tabs, tabs.length);
       if (tabs.length > 0) {
         let tab = tabs[0];
+        console.log(tab);
         // タブIDを保存する
         for (let i = 0; i < urls.length; i++) {
           if (url === urls[i]) {
-            tabId[i] = tab.id;
-            console.log(tabId[i]);
+            tabId.push({ [url]: tab.id });
+            console.log(tabId);
           }
         }
         // コンテンツスクリプトを挿入する
@@ -70,14 +71,11 @@ function startProcessing() {
             seatch_urls.forEach((value, index) => {
               console.log(value, url);
               if (url === value) {
-                a = value
+                a = value;
                 // 変数を使ってクエリを実行する
                 chrome.runtime.onMessage.addListener(handleMessage);
-                // コンテンツスクリプトからのメッセージを処理する
-                //@@task@@ for文で複数のタブに対応させる
-                // if (url === value) {
-                  // chrome.runtime.onMessage.addListener(handleMessage);
-                // }
+                // コンテンツスクリプトからのメッセージを処理す
+                console.log("aaa");
               }
             });
           }
@@ -88,50 +86,53 @@ function startProcessing() {
 
   // コンテンツスクリプトからのメッセージを処理して株探のタブを開く
   function handleMessage(message, sender, sendResponse) {
-    console.log(message);
-    if (message.command === "updateTabUrl") 
-      rega = a + "*";
-      chrome.tabs.query({ url: rega }, function (tabs) {
-        console.log(tabs);
-        if (tabs.length > 0) {
-          let tab = tabs[0];
-          console.log(tab);
+    console.log(message, sender, sendResponse);
+    if (message.command === "updateTabUrl") rega = a + "*";
+    console.log(rega);
+    let queryOptions = { currentWindow: true };
+    chrome.tabs.query(queryOptions, function (tabs) {
+      console.log(tabs);
+      for (let tab of tabs) {
+          let updateOptions = { url: "https://developer.mozilla.org" };
+          // let tab = tabs[0];
+          // console.log(tab);
           //@@task@@ for文で複数のタブに対応させる
-          chrome.tabs.update(tab.id, {
-            url: a + message.url,
+          chrome.tabs.update(tab.id, updateOptions,).then((updatedTab) => {
+            // 更新されたタブの情報が返ってくる
+            console.log(`Updated tab: ${updatedTab.id}`);
           });
-        }
-      });
-    }
+        
+      }
+    });
   }
+}
 
-  chrome.tabs.query({ url: "https://jp.tradingview.com/" }, function (tabs) {
-    if (tabs.length > 0) {
-      let tab = tabs[0];
-      tabId2 = tab.id;
+chrome.tabs.query({ url: "https://jp.tradingview.com/" }, function (tabs) {
+  if (tabs.length > 0) {
+    let tab = tabs[0];
+    tabId2 = tab.id;
 
-      // Insert content script
-      chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        files: ["./detection.js"],
-      });
-    }
-  });
+    // Insert content script
+    chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      files: ["./detection.js"],
+    });
+  }
+});
 
-  // タブが削除されたときのイベントリスナー
-  chrome.tabs.onRemoved.addListener(function (tabId, removeInfo) {
-    if (tabId === tabId2) {
-      chrome.storage.sync.set({ isEnabled: false });
-    }
-  });
+// タブが削除されたときのイベントリスナー
+chrome.tabs.onRemoved.addListener(function (tabId, removeInfo) {
+  if (tabId === tabId2) {
+    chrome.storage.sync.set({ isEnabled: false });
+  }
+});
 
-  // タブが更新されたときのイベントリスナー
-  chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
-    if (tabId === tabId2 && changeInfo.status === "complete") {
-      chrome.storage.sync.set({ isEnabled: false });
-    }
-  });
-
+// タブが更新されたときのイベントリスナー
+chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
+  if (tabId === tabId2 && changeInfo.status === "complete") {
+    chrome.storage.sync.set({ isEnabled: false });
+  }
+});
 
 // 拡張機能が有効かどうかが変更されたときのイベントリスナー
 chrome.storage.onChanged.addListener(function (changes, areaName) {
