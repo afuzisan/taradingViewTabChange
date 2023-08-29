@@ -87,25 +87,53 @@ function startProcessing() {
   // コンテンツスクリプトからのメッセージを処理して株探のタブを開く
   function handleMessage(message, sender, sendResponse) {
     console.log(message, sender, sendResponse);
-    if (message.command === "updateTabUrl") rega = a + "*";
-    console.log(rega);
-    let queryOptions = { currentWindow: true };
-    chrome.tabs.query(queryOptions, function (tabs) {
+    let urls = [
+      "https://developer.mozilla.org/ja/",
+      "https://kabutan.jp/stock/chart?code=",
+    ];
+    if (message.command === "updateTabUrl") 
+    // URLの配列を作る
+    chrome.tabs.query({}, function (tabs) {
+      // tabsはすべてのタブの配列
       console.log(tabs);
+      // urlsにマッチするタブのidを取得する
       for (let tab of tabs) {
-          let updateOptions = { url: "https://developer.mozilla.org" };
-          // let tab = tabs[0];
-          // console.log(tab);
-          //@@task@@ for文で複数のタブに対応させる
-          chrome.tabs.update(tab.id, updateOptions,).then((updatedTab) => {
-            // 更新されたタブの情報が返ってくる
-            console.log(`Updated tab: ${updatedTab.id}`);
-          });
-        
+        // urlプロパティを取得する
+        let url = tab.url;
+        // urlsの各要素と比較する
+        for (let u of urls) {
+          // 部分的な一致や正規表現などを使って判定する
+          if (url.includes(u) || url.match(u)) {
+            // マッチしたらidを出力する
+            console.log(tab);
+            console.log(url)
+            // 配列からURLを取り出してタブに設定する
+              chrome.tabs.update(tab.id, { url });
+
+          }
+        }
       }
     });
   }
 }
+
+chrome.tabs.query({}, function (tabs) {
+  // tabsはすべてのタブの配列
+  console.log(tabs);
+  // urlsにマッチするタブのidを取得する
+  for (let tab of tabs) {
+    // urlプロパティを取得する
+    let url = tab.url;
+    // urlsの各要素と比較する
+    for (let u of urls) {
+      // 部分的な一致や正規表現などを使って判定する
+      if (url.includes(u) || url.match(u)) {
+        // マッチしたらidを出力する
+        console.log(tab.id);
+      }
+    }
+  }
+});
 
 chrome.tabs.query({ url: "https://jp.tradingview.com/" }, function (tabs) {
   if (tabs.length > 0) {
