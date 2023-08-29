@@ -89,31 +89,40 @@ function startProcessing() {
     console.log(message, sender, sendResponse);
     let urls = [
       "https://developer.mozilla.org/ja/",
-      "https://kabutan.jp/stock/chart?code=",
+      "https://kabutan.jp/stock/chart?code=__code__",
     ];
-    if (message.command === "updateTabUrl") 
-    // URLの配列を作る
-    chrome.tabs.query({}, function (tabs) {
-      // tabsはすべてのタブの配列
-      console.log(tabs);
-      // urlsにマッチするタブのidを取得する
-      for (let tab of tabs) {
-        // urlプロパティを取得する
-        let url = tab.url;
-        // urlsの各要素と比較する
-        for (let u of urls) {
-          // 部分的な一致や正規表現などを使って判定する
-          if (url.includes(u) || url.match(u)) {
-            // マッチしたらidを出力する
-            console.log(tab);
-            console.log(url)
-            // 配列からURLを取り出してタブに設定する
-              chrome.tabs.update(tab.id, { url });
 
+    let val = '4777'
+    if (message.command === "updateTabUrl")
+      // URLの配列を作る
+      chrome.tabs.query({}, function (tabs) {
+        // tabsはすべてのタブの配列
+        console.log(tabs);
+        // urlsにマッチするタブのidを取得する
+        for (let tab of tabs) {
+          // urlプロパティを取得する
+          let url = tab.url;
+          // urlsの各要素と比較する
+          for (let u of urls) {
+            let a = u
+            let DelStr = a.replace('__code__', ""); 
+            console.log(DelStr)
+            // 部分的な一致や正規表現などを使って判定する
+            if (url.includes(DelStr) || url.match(DelStr)) {
+              // マッチしたらidを出力する
+              console.log(tab);
+              console.log(url);
+              console.log(u)
+              // 差分となる部分を置き換える
+              let newStr = u.replace('__code__', val); 
+              // 結果を表示する
+              console.log(newStr);
+              // 配列からURLを取り出してタブに設定する
+              chrome.tabs.update(tab.id, { url: newStr });
+            }
           }
         }
-      }
-    });
+      });
   }
 }
 
