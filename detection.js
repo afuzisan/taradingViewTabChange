@@ -1,9 +1,5 @@
 document.body.style.backgroundColor = "green";
 
-
-// 対象となる要素を選択
-// @task
-// クロームストレージからのselectorに変更
 const target = document.querySelector('#header-toolbar-symbol-search > div');
 
 // MutationObserverのインスタンスを作成
@@ -11,9 +7,6 @@ const observer = new MutationObserver(function (mutations) {
     mutations.forEach(function (mutation) {
         // 変更された文字列を取得
         const newText = mutation.target.textContent;
-        console.log(newText);
-
-        console.log("Sending message", { command: "updateTabUrl", url: newText });
         chrome.runtime.sendMessage({ command: "updateTabUrl", url: newText });
 
     });
