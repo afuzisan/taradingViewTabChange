@@ -46,7 +46,15 @@ function startProcessing() {
 
   // コンテンツスクリプトからのメッセージを処理して株探のタブを開く
   function handleMessage(message, sender, sendResponse) {
-    let urls = ["https://kabutan.jp/stock/chart?code=__code__"]
+    let urls = 
+    [
+      "https://kabutan.jp/stock/chart?code=__code__",
+      "https://kabutan.jp/stock/news?code=__code__",
+      "https://kabutan.jp/stock/finance?code=__code__",
+      "https://kabutan.jp/stock/?code=__code__",
+      "https://kabutan.jp/stock/kabuka?code=__code__",
+      "https://kabutan.jp/stock/holder?code=__code__"
+    ]
     if (message.command === "updateTabUrl")
       // URLの配列を作る
       chrome.tabs.query({}, function (tabs) {
