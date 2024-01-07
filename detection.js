@@ -7,6 +7,7 @@ const observer = new MutationObserver(function (mutations) {
     mutations.forEach(function (mutation) {
         // 変更された文字列を取得
         const newText = mutation.target.textContent;
+        //バックグラウンドにメッセージを送信
         chrome.runtime.sendMessage({ command: "updateTabUrl", url: newText });
 
     });
